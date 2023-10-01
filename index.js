@@ -95,11 +95,12 @@ io.on("connection", (socket) => {
 
     // Find the Pools the socket is currently in
     const Pools = Object.keys(socket.rooms);
-
+    acceptedPayments=0;
     // Loop through the Pools (excluding the socket ID)
     Pools.forEach((Pool) => {
       if (Pool !== socket.id) {
         // Leave the Pool
+        
         console.log(`User left Pool: ${Pool}`);
         socket.leave(Pool);
 
