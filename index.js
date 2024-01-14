@@ -16,7 +16,7 @@ app.use(express.json(),cors());
 // // const client = require('twilio')(accountSid, authToken);
 
 const accountSid = 'AC6588fe8f78edd2b554062bf026a42889';
-const authToken = 'c7eb2706448473be0e16ab42627a30a6';
+const authToken = 'feee6d5e52c7456d3fc396ec41f8f0e8';
 const client = require('twilio')(accountSid, authToken);
 
 app.use(bodyParser.json());
@@ -124,6 +124,7 @@ io.on("connection", (socket) => {
 
 app.post('/send-messages', async (req, res) => {
   const { numbers, messageTemplate } = req.body;
+  console.log(numbers,messageTemplate)
   try {
       for (const recipient of numbers) {
           const { name, phoneNumber, amount } = recipient;
@@ -131,15 +132,14 @@ app.post('/send-messages', async (req, res) => {
               .replace('{name}', name)
               .replace('{amount}', amount);
 
-          await client.messages
+              await client.messages
               .create({
                   body: personalizedMessage,
                   from: 'whatsapp:+14155238886',
                   to: `whatsapp:+91${phoneNumber}`
               })
-              .then(message => console.log(message.sid));
+              .then(message => console.log(message.sid))
       }
-
       res.json({ success: true, message: 'Messages sent successfully' });
   } catch (error) {
       console.error('Error sending messages:', error);
