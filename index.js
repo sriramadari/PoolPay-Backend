@@ -122,32 +122,32 @@ io.on("connection", (socket) => {
 });
 
 
-
-// POST endpoint to send messages to multiple mobile numbers
 app.post('/send-messages', async (req, res) => {
-    const { numbers, message } = req.body;
-    console.log(req.body)
-    try {
-        // Loop through each mobile number and send a message
-        for (const number of numbers) {
-            await client.messages
-                .create({
-                    body: message,
-                    from: 'whatsapp:+14155238886',
-                    to: `whatsapp:+91${number}`
-                })
-                .then(message => console.log(message.sid))
+  const { numbers, messageTemplate } = req.body;
+  try {
+      for (const recipient of numbers) {
+          const { name, phoneNumber, amount } = recipient;
+          const personalizedMessage = messageTemplate
+              .replace('{name}', name)
+              .replace('{amount}', amount);
 
-        }
+          await client.messages
+              .create({
+                  body: personalizedMessage,
+                  from: 'whatsapp:+14155238886',
+                  to: `whatsapp:+91${phoneNumber}`
+              })
+              .then(message => console.log(message.sid));
+      }
 
-        res.json({ success: true, message: 'Messages sent successfully' });
-    } catch (error) {
-        console.error('Error sending messages:', error);
-        res.status(500).json({ success: false, message: 'Failed to send messages' });
-    }
+      res.json({ success: true, message: 'Messages sent successfully' });
+  } catch (error) {
+      console.error('Error sending messages:', error);
+      res.status(500).json({ success: false, message: 'Failed to send messages' });
+  }
 });
 
 const port = 4000;
 server.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+    console.log(`Server is running on port ${port} 🚀`);
 });
