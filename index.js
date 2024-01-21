@@ -1,22 +1,30 @@
+require('dotenv').config();
 const express = require('express')
 const app = express();
+const mongoose = require('mongoose');
 const server = require('http').createServer(app)
 const cors = require('cors');
+const User = require('./Models/user');
+
 const io = require('socket.io')(server,{
   cors:{
     origin:"*"
   }
 })
 const bodyParser = require('body-parser');
+
 app.use(express.json(),cors());
-// const poolSocket=io.of("/pool");
 
-// const accountSid = 'ACf680c4080efebab4cea8b60cbb5620d4'; // Your Twilio Account SID
-// const authToken = '6eb830f7275aa64d35a56500c572e9f2';     // Your Twilio Auth Token
-// // const client = require('twilio')(accountSid, authToken);
+// Replace the following with your Atlas MongoDB URI 
+const dbURI = "mongodb+srv://"+process.env.USER_NAME+":"+process.env.PASSWORD+"@cluster0.cncnbca.mongodb.net/CrewPeDB?retryWrites=true&w=majority";
 
-const accountSid = 'AC6588fe8f78edd2b554062bf026a42889';
-const authToken = 'feee6d5e52c7456d3fc396ec41f8f0e8';
+mongoose.connect(dbURI)
+  .then((result) => console.log('connected to MongoDB Atlas'))
+  .catch((err) => console.log(err));
+
+const accountSid = process.env.ACCOUNT_SID;
+const authToken = process.env.AUTH_TOKEN;
+
 const client = require('twilio')(accountSid, authToken);
 
 app.use(bodyParser.json());
@@ -27,21 +35,18 @@ let acceptedPayments = 0;
 
 io.on("connection", (socket) => {
   console.log("user connected with: ",socket.id);
-  
   socket.on("joinPool", (mobileNumber) => {
-    // Join the POOL with mobile number
-    const existingPool = socket.rooms[mobileNumber];
-// console.log(existingPool)
+  const existingPool = socket.rooms[mobileNumber];
+  
+  // console.log(existingPool)
   if (existingPool) {
     // Leave the existing pool
     socket.leave(existingPool);
     console.log(`User left Pool: ${existingPool}`);
   }
-
   // Join the POOL with mobile number
   socket.join(mobileNumber);
   console.log(`User joined Pool: ${mobileNumber}`);
-
   // Update the mobile number Pool with the socket ID
   mobileNumberPools[mobileNumber] = socket.id;
   console.log(mobileNumberPools);
@@ -121,6 +126,38 @@ io.on("connection", (socket) => {
   });
 });
 
+app.post('/user', (req, res) => {
+  const { email, phone } = req.body;
+  console.log(email,phone)
+  const user = new User({ email, phone });
+  user.save()
+    .then(() => res.status(201).json({ message: 'User created successfully' }))
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({ error: err.message })
+    });
+});
+
+app.get('/user/hasMobileNumber', async (req, res) => {
+  const { email } = req.query;
+
+  try {
+    const user = await User.findOne({ email });
+    console.log(user) 
+
+    if (!user) {
+      return res.json({ hasMobileNumber: false });
+    }
+
+    if (user.phone) {
+      return res.json({ hasMobileNumber: user.phone });
+    } else {
+      return res.json({ hasMobileNumber: false });
+    }
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
 
 app.post('/send-messages', async (req, res) => {
   const { numbers, messageTemplate } = req.body;
