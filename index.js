@@ -17,6 +17,7 @@ app.use(express.json(),cors());
 
 // Replace the following with your Atlas MongoDB URI 
 const dbURI = "mongodb+srv://"+process.env.USER_NAME+":"+process.env.PASSWORD+"@cluster0.cncnbca.mongodb.net/CrewPeDB?retryWrites=true&w=majority";
+console.log(dbURI)
 
 mongoose.connect(dbURI)
   .then((result) => console.log('connected to MongoDB Atlas'))
