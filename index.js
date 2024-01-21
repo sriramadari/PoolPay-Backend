@@ -16,7 +16,8 @@ const bodyParser = require('body-parser');
 app.use(express.json(),cors());
 
 // Replace the following with your Atlas MongoDB URI 
-const dbURI = "mongodb+srv://"+process.env.USER_NAME+":"+process.env.PASSWORD+"@cluster0.cncnbca.mongodb.net/CrewPeDB?retryWrites=true&w=majority";
+// const dbURI = "mongodb+srv://"+process.env.USER_NAME+":"+process.env.PASSWORD+"@cluster0.cncnbca.mongodb.net/CrewPeDB?retryWrites=true&w=majority";
+const dbURI = "mongodb+srv://lakshmisriramadari1427:vpf3zFqIeG88Hu0R@cluster0.cncnbca.mongodb.net/CrewPeDB?retryWrites=true&w=majority";
 console.log(dbURI)
 
 mongoose.connect(dbURI)
