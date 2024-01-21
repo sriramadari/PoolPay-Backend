@@ -1,8 +1,10 @@
+require('dotenv').config();  
 const express = require('express')
 const app = express();
 const mongoose = require('mongoose');
 const server = require('http').createServer(app)
 const cors = require('cors');
+const nodemailer = require('nodemailer');
 const User = require('./Models/user');
 
 const io = require('socket.io')(server,{
@@ -10,21 +12,33 @@ const io = require('socket.io')(server,{
     origin:"*"
   }
 })
+
 app.use(express.json(),cors());
 app.use(express.urlencoded({ extended: true }));
 // Replace the following with your Atlas MongoDB URI 
-// const dbURI = "mongodb+srv://"+process.env.USER_NAME+":"+process.env.PASSWORD+"@cluster0.cncnbca.mongodb.net/CrewPeDB?retryWrites=true&w=majority";
-const dbURI = "mongodb+srv://lakshmisriramadari1427:vpf3zFqIeG88Hu0R@cluster0.cncnbca.mongodb.net/CrewPeDB?retryWrites=true&w=majority";
-console.log(dbURI)
+const dbURI = "mongodb+srv://"+process.env.USER_NAME+":"+process.env.PASSWORD+"@cluster0.cncnbca.mongodb.net/CrewPeDB?retryWrites=true&w=majority";
 
 mongoose.connect(dbURI)
   .then((result) => console.log('connected to MongoDB Atlas'))
   .catch((err) => console.log(err));
 
-const accountSid = "AC6588fe8f78edd2b554062bf026a42889";
-const authToken = "feee6d5e52c7456d3fc396ec41f8f0e8";
+// const accountSid = process.env.ACCOUNT_SID;
+// const authToken = process.env.AUTH_TOKEN;
 
-const client = require('twilio')(accountSid, authToken);
+// const client = require('twilio')(accountSid, authToken);
+
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
+  auth: {
+      user: process.env.MAIL,
+      pass: process.env.PASS
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
+});
 
 const mobileNumberPools = {};
 let totalUsers;
@@ -158,26 +172,33 @@ app.get('/user/hasMobileNumber', async (req, res) => {
 
 app.post('/send-messages', async (req, res) => {
   const { numbers, messageTemplate } = req.body;
-  console.log(numbers,messageTemplate)
+  console.log(numbers, messageTemplate)
   try {
-      for (const recipient of numbers) {
-          const { name, phoneNumber, amount } = recipient;
-          const personalizedMessage = messageTemplate
-              .replace('{name}', name)
-              .replace('{amount}', amount);
+    for (const recipient of numbers) {
+      const { name, phoneNumber, amount } = recipient;
+      const personalizedMessage = messageTemplate
+        .replace('{name}', name)
+        .replace('{amount}', amount);
+        const user = await User.findOne({ phone: phoneNumber });
 
-              await client.messages
-              .create({
-                  body: personalizedMessage,
-                  from: 'whatsapp:+14155238886',
-                  to: `whatsapp:+91${phoneNumber}`
-              })
-              .then(message => console.log(message.sid))
-      }
-      res.json({ success: true, message: 'Messages sent successfully' });
+        if (!user || !user.email) {
+          console.error(`No user found for phone number: ${phoneNumber}`);
+          continue;
+        }
+
+      let info = await transporter.sendMail({
+        from:process.env.MAIL,
+        to: user.email,
+        subject: "CrewPe services💖",
+        text: personalizedMessage+" click this link to checkout https://pool-pay-frontend.vercel.app", 
+      });
+
+      console.log("Message sent: %s", info.messageId);
+    }
+    res.json({ success: true, message: 'Messages sent successfully' });
   } catch (error) {
-      console.error('Error sending messages:', error);
-      res.status(500).json({ success: false, message: 'Failed to send messages' });
+    console.error('Error sending messages:', error);
+    res.status(500).json({ success: false, message: 'Failed to send messages' });
   }
 });
 
