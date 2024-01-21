@@ -10,10 +10,8 @@ const io = require('socket.io')(server,{
     origin:"*"
   }
 })
-const bodyParser = require('body-parser');
-
 app.use(express.json(),cors());
-
+app.use(express.urlencoded({ extended: true }));
 // Replace the following with your Atlas MongoDB URI 
 // const dbURI = "mongodb+srv://"+process.env.USER_NAME+":"+process.env.PASSWORD+"@cluster0.cncnbca.mongodb.net/CrewPeDB?retryWrites=true&w=majority";
 const dbURI = "mongodb+srv://lakshmisriramadari1427:vpf3zFqIeG88Hu0R@cluster0.cncnbca.mongodb.net/CrewPeDB?retryWrites=true&w=majority";
@@ -27,8 +25,6 @@ const accountSid = "AC6588fe8f78edd2b554062bf026a42889";
 const authToken = "feee6d5e52c7456d3fc396ec41f8f0e8";
 
 const client = require('twilio')(accountSid, authToken);
-
-app.use(bodyParser.json());
 
 const mobileNumberPools = {};
 let totalUsers;
