@@ -1,4 +1,3 @@
-require('dotenv').config();
 const express = require('express')
 const app = express();
 const mongoose = require('mongoose');
@@ -24,8 +23,8 @@ mongoose.connect(dbURI)
   .then((result) => console.log('connected to MongoDB Atlas'))
   .catch((err) => console.log(err));
 
-const accountSid = process.env.ACCOUNT_SID;
-const authToken = process.env.AUTH_TOKEN;
+const accountSid = "AC6588fe8f78edd2b554062bf026a42889";
+const authToken = "feee6d5e52c7456d3fc396ec41f8f0e8";
 
 const client = require('twilio')(accountSid, authToken);
 
