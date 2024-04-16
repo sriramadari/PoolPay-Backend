@@ -22,10 +22,7 @@ mongoose.connect(dbURI)
   .then((result) => console.log('connected to MongoDB Atlas'))
   .catch((err) => console.log(err));
 
-// const accountSid = process.env.ACCOUNT_SID;
-// const authToken = process.env.AUTH_TOKEN;
 
-// const client = require('twilio')(accountSid, authToken);
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
